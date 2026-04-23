@@ -1,13 +1,14 @@
 #include "SampleScene.h"
 #include <iostream>
 #include "DummyEntity.h"
+#include "Resistor.h"
 
 #include "Debug.h"
 
 void SampleScene::OnInitialize()
 {
 	clock.restart();
-	TimeScore = 0.0f;
+	dt = 0.0f;
 
 	game = GameManager::Get();
 
@@ -23,6 +24,14 @@ void SampleScene::OnInitialize()
 	text.setOrigin(textRect.width, textRect.height / 2.0f);
 	text.setPosition(1000 / 2.0f, 150);
 
+	Money.setFont(game->GetFont());
+	Money.setCharacterSize(50);
+	Money.setFillColor(sf::Color::White);
+
+	const sf::FloatRect MoneyyRect = Money.getLocalBounds();
+	Money.setOrigin(textRect.width, textRect.height / 2.0f);
+	Money.setPosition(0,0);
+
 	srand(time(nullptr));
 
 	width = GetWindowWidth();
@@ -31,6 +40,9 @@ void SampleScene::OnInitialize()
 	VerticalLane  = height / 9;
 
 	CreateBall(40);
+
+	CanResistor = false;
+	firstkickResistor = false;
 }
 
 void SampleScene::OnEvent(const sf::Event& event)
@@ -42,10 +54,15 @@ void SampleScene::OnEvent(const sf::Event& event)
 	if (event.mouseButton.button == sf::Mouse::Button::Left)
 	{
 		TryBall(Ball, event.mouseButton.x, event.mouseButton.y);
-		for(int x =0; x<5; x++)
+		for(DummyEntity* Projectile : Projectiles)
 		{
-			if (Projectiles[x] != nullptr)
-				TrySetSelectedEntity(Projectiles[x], event.mouseButton.x, event.mouseButton.y);
+			if (Projectile != nullptr)
+				TryProjectile(Projectile, event.mouseButton.x, event.mouseButton.y);
+		}
+		for (Resistor* resistor : Resistors)
+		{
+			if (resistor != nullptr)
+				TryResistor(resistor, event.mouseButton.x, event.mouseButton.y);
 		}
 	}
 }
@@ -55,36 +72,94 @@ void SampleScene::OnUpdate()
 {
 	if(lifeBall == 3)
 	{
-		text.setString("Salut \nDésolé de te dire ça mais\nRien n'est prêt");
+		text.setString("Salut \nDésolé de te dire ça mais\nLe jeu n'est prêt");
 	}
 	else if(lifeBall == 2)
 	{
-		text.setString("Hey arrête tu vas la cassée");
+		text.setString("Hey arrête tu vas la casser");
 		Ball->Destroy();
 		CreateBall(35);
 	}
 	else if(lifeBall ==1)
 	{
-		text.setString("T'as pas intéret a la cassée");
+		text.setString("T'as pas intéret a la casser");
 		Ball->Destroy();
 		CreateBall(30);
 	}
 	else if(CanSpawn_projectiles == false)
 	{
-		text.setString("Tu vas me le payer");
+		text.setString("Tu vas me le payée");
 		Ball->Destroy();
 		CanSpawn_projectiles = true;
-		for(int x = 0; x<5; x++)
+		int x = 0;
+		for(int x =0; x<5; x++)
 		{
 			SpawnProjectile(x);
 		}
+		Gold++;
 	}
+
+	//texte pour l'argent qu'on a
+	Money.setString("vous avez " + std::to_string(Gold) + " pièces");
+
 	Debug::Get()->DrawText(text.getPosition().x, text.getPosition().y, text.getString(), sf::Color::White);
+	Debug::Get()->DrawText(Money.getPosition().x, Money.getPosition().y, Money.getString(), sf::Color::White);
 
 	for(auto it = Projectiles.begin(); it!=Projectiles.end();)
 	{
 		DummyEntity* Ennemie = *it; //pour bouger les projectiles utiliser Ennemie
+		if (Ennemie->GetPosition().y <= 0 + Ennemie->GetRadius())
+		{
+			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
+		}
+		if (Ennemie->GetPosition().y >= height - Ennemie->GetRadius())
+		{
+			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
+		}
+		if (Ennemie->GetPosition().x <= 0 + Ennemie->GetRadius())
+		{
+			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
+		}
+		if (Ennemie->GetPosition().x >= width - Ennemie->GetRadius())
+		{
+			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
+		}
+		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, 10);
 		it++;
+	}
+	if (ProjectilesDestroy == 5 && CanResistor == false)
+	{
+		text.setString("Quoi! Tu a détruit mes boules\nPrépare toi, c'est pas finie");
+		for (int x = 0; x < 5; x++)
+		{
+			spawnResistors(x);
+			std::cout << "Fuck you";
+		}
+		CanResistor = true;
+
+	}
+	
+	for (auto ça = Resistors.begin(); ça != Resistors.end();)
+	{
+		Resistor* Ennemie = *ça; 
+		if (Ennemie->GetPosition().y <= 0 + Ennemie->GetRadius())
+		{
+			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
+		}
+		if (Ennemie->GetPosition().y >= height - Ennemie->GetRadius())
+		{
+			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
+		}
+		if (Ennemie->GetPosition().x <= 0 + Ennemie->GetRadius())
+		{
+			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
+		}
+		if (Ennemie->GetPosition().x >= width - Ennemie->GetRadius())
+		{
+			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
+		}
+		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, 10);
+		ça++;
 	}
 }
 
@@ -96,12 +171,35 @@ void SampleScene::TryBall(DummyEntity* pEntity, int x, int y)
 	lifeBall--;
 }
 
-void SampleScene::TrySetSelectedEntity(DummyEntity* pEntity, int x, int y)
+void SampleScene::TryProjectile(DummyEntity* pEntity, int x, int y)
 {
 	if (pEntity->IsInside(x, y) == false)
 		return;
 
 	pEntity->Destroy();
+	ProjectilesDestroy++;
+	Gold++;
+}
+
+void SampleScene::TryResistor(Resistor* pEntity, int x, int y)
+{
+	if (pEntity->IsInside(x, y) == false)
+		return;
+
+	pEntity->life--;
+	std::cout << pEntity->life << std::endl;
+
+	if (firstkickResistor == false)
+	{
+		text.setString("HAHA celle là sont beaucoup plus résistante.");
+		firstkickResistor = true;
+	}
+
+	if(pEntity->life == 0)
+	{
+		pEntity->Destroy();
+		Gold++;
+	}
 }
 
 void SampleScene::DrawLines()
@@ -137,8 +235,20 @@ void SampleScene::CreateBall(int size)
 	Ball->SetRigidBody(true);
 }
 
-void SampleScene::SpawnProjectile(int x)
+void SampleScene::SpawnProjectile(int Speed)
 {
-	Projectile = CreateEntity<DummyEntity>(30, sf::Color::Red);
+	Projectile = CreateEntity<DummyEntity>(40, sf::Color::Red);
 	Projectiles.push_back(Projectile);
+	Projectile->HorizontalSpeed = 10 + 5 * Speed;
+	Projectile->VerticalSpeed = 50;
+	Projectile->SetPosition(width/2, height/2);
+}
+
+void SampleScene::spawnResistors(int Speed)
+{
+	resistor = CreateEntity<Resistor>(40, sf::Color::Yellow);
+	Resistors.push_back(resistor);
+	resistor->HorizontalSpeed = 10 + 7 * Speed;
+	resistor->VerticalSpeed = 50;
+	resistor->SetPosition(width / 2, height / 2);
 }

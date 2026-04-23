@@ -1,11 +1,12 @@
 #pragma once
 #include "Entity.h"
 
-class DummyEntity : public Entity
+class Resistor : public Entity
 {
 public:
 	void OnCollision(Entity* other) override;
 	float  HorizontalSpeed;
 	float VerticalSpeed;
+	int life = 3;
 };
 

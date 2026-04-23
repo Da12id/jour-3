@@ -6,15 +6,19 @@
 #include <vector>
 
 class DummyEntity;
+class Resistor;
 
 class SampleScene : public Scene
 {
 	sf::Text text;
+	sf::Text Money;
 	sf::Clock clock;
 	GameManager* game;
 	DummyEntity* Ball;
 	DummyEntity* Projectile;
+	Resistor* resistor;
 	std::vector<DummyEntity*>Projectiles;
+	std::vector<Resistor*>Resistors;
 
 public:
 	void OnInitialize() override;
@@ -22,7 +26,8 @@ public:
 	void OnUpdate() override;
 
 private:
-	int score;
+	float dt;
+	int Gold;
 	int HorizontalLane;
 	int VerticalLane;
 	int width;
@@ -32,14 +37,20 @@ private:
 	bool BallDead;
 	bool die = false;
 	bool CanSpawn_projectiles;
+	bool CanResistor;
+	bool firstkickResistor;
 	int moveHorizontal;
 	int moveVertical;
+	int ProjectilesDestroy;
+	int spawnMore;
 	void TryBall(DummyEntity* pEntity, int x, int y);
-	void TrySetSelectedEntity(DummyEntity* pEntity, int x, int y);
+	void TryProjectile(DummyEntity* pEntity, int x, int y);
+	void TryResistor(Resistor* pEntity, int x, int y);
 	void DrawLines();
 	int PickNumber(int number, int total);
 	void CreateBall(int size);
-	void SpawnProjectile(int x);
+	void SpawnProjectile(int speed);
+	void spawnResistors(int Speed);
 };
 
 

@@ -1,40 +1,48 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
-    <ItemGroup>
-        <Filter Include="header">
-            <UniqueIdentifier>{BB5A77FC-0CEF-4826-A85D-5552219F4750}</UniqueIdentifier>
-            <Extensions>h;hpp</Extensions>
-        </Filter>
-        <Filter Include="resource">
-            <UniqueIdentifier>{BC89623B-D8FA-4921-8354-DDA372C4083F}</UniqueIdentifier>
-            <Extensions>hlsl;jpg;jpeg;png;wav;mp3;ico;dds;rc;obj</Extensions>
-        </Filter>
-        <Filter Include="source">
-            <UniqueIdentifier>{E1CCCBA4-12ED-4A50-8CCF-103CD5AED5DB}</UniqueIdentifier>
-            <Extensions>cpp;c</Extensions>
-        </Filter>
-    </ItemGroup>
-    <ItemGroup>
-        <ClCompile Include="..\..\..\src\Sample\DummyEntity.cpp">
-            <Filter>source</Filter>
-        </ClCompile>
-        <ClCompile Include="..\..\..\src\Sample\main.cpp">
-            <Filter>source</Filter>
-        </ClCompile>
-        <ClCompile Include="..\..\..\src\Sample\MenuScene.cpp">
-            <Filter>source</Filter>
-        </ClCompile>
-        <ClCompile Include="..\..\..\src\Sample\SampleScene.cpp">
-            <Filter>source</Filter>
-        </ClCompile>
-        <ClInclude Include="..\..\..\src\Sample\DummyEntity.h">
-            <Filter>header</Filter>
-        </ClInclude>
-        <ClInclude Include="..\..\..\src\Sample\MenuScene.h">
-            <Filter>header</Filter>
-        </ClInclude>
-        <ClInclude Include="..\..\..\src\Sample\SampleScene.h">
-            <Filter>header</Filter>
-        </ClInclude>
-    </ItemGroup>
+  <ItemGroup>
+    <Filter Include="header">
+      <UniqueIdentifier>{0C4516FE-96DE-4770-9EA6-E30C0A104E9C}</UniqueIdentifier>
+      <Extensions>h;hpp</Extensions>
+    </Filter>
+    <Filter Include="resource">
+      <UniqueIdentifier>{C9BF180E-76E2-4D8A-B38B-1AF9DA5BE30E}</UniqueIdentifier>
+      <Extensions>hlsl;jpg;jpeg;png;wav;mp3;ico;dds;rc;obj</Extensions>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{7EAAB637-8F2F-4508-A17F-AE60913272EE}</UniqueIdentifier>
+      <Extensions>cpp;c</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\Sample\DummyEntity.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Sample\main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Sample\MenuScene.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Sample\SampleScene.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\src\Sample\DummyEntity.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Sample\MenuScene.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Sample\SampleScene.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\src\Sample\Resistor.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\Sample\Resistor.h">
+      <Filter>header</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

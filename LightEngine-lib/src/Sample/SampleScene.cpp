@@ -13,18 +13,23 @@ void SampleScene::OnInitialize()
 
 	game = GameManager::Get();
 
-	moveHorizontal = 50;
-	moveVertical = 40;
+	width = GetWindowWidth();
+	height = GetWindowHeight();
+	HorizontalLane = width / 7;
+	VerticalLane  = height / 9;
+
 	lifeBall = 3;
 	BallDead = false;
 	text.setFont(game->GetFont());
 	text.setCharacterSize(50);
 	text.setFillColor(sf::Color::White);
 
+	//texte du narrateur
 	const sf::FloatRect textRect = text.getLocalBounds();
 	text.setOrigin(textRect.width, textRect.height / 2.0f);
-	text.setPosition(1000 / 2.0f, 150);
+	text.setPosition(980 / 2.0f, 150);
 
+	//texte du compteur de money
 	Money.setFont(game->GetFont());
 	Money.setCharacterSize(50);
 	Money.setFillColor(sf::Color::White);
@@ -33,12 +38,17 @@ void SampleScene::OnInitialize()
 	Money.setOrigin(textRect.width, textRect.height / 2.0f);
 	Money.setPosition(0,0);
 
+	//Indication pour le bouton
+	Indication.setFont(game->GetFont());
+	Indication.setCharacterSize(20);
+	Indication.setFillColor(sf::Color::White);
+
+	const sf::FloatRect IndicationRect = Indication.getLocalBounds();
+	Indication.setOrigin(textRect.width, textRect.height / 2.0f);
+	Indication.setPosition(width /2 + width / 8 , 20 );
+
 	srand(time(nullptr));
 
-	width = GetWindowWidth();
-	height = GetWindowHeight();
-	HorizontalLane = width / 7;
-	VerticalLane  = height / 9;
 
 	CreateBall(40);
 
@@ -46,6 +56,7 @@ void SampleScene::OnInitialize()
 	firstkickResistor = false;
 	spawnSpeeder = false;
 	CanSpeeder = false;
+	respawnBall = false;
 }
 
 void SampleScene::OnEvent(const sf::Event& event)
@@ -67,6 +78,15 @@ void SampleScene::OnEvent(const sf::Event& event)
 			if (resistor != nullptr)
 				TryResistor(resistor, event.mouseButton.x, event.mouseButton.y);
 		}
+		for (Speeder* speeders : Speeders)
+		{
+			if (speeders != nullptr)
+				TrySpeeder(speeders, event.mouseButton.x, event.mouseButton.y);
+		}
+		if(Button != nullptr)
+			PressedButton(Button, event.mouseButton.x, event.mouseButton.y);
+		if(Button2 != nullptr)
+			PressedButton2(Button2, event.mouseButton.x, event.mouseButton.y);
 	}
 }
 
@@ -107,23 +127,25 @@ void SampleScene::OnUpdate()
 
 	Debug::Get()->DrawText(text.getPosition().x, text.getPosition().y, text.getString(), sf::Color::White);
 	Debug::Get()->DrawText(Money.getPosition().x, Money.getPosition().y, Money.getString(), sf::Color::White);
+	Debug::Get()->DrawText(Indication.getPosition().x, Indication.getPosition().y, Indication.getString(), sf::Color::White);
 
+	//mouvement projectiles
 	for(auto it = Projectiles.begin(); it!=Projectiles.end();)
 	{
 		DummyEntity* Ennemie = *it; //pour bouger les projectiles utiliser Ennemie
-		if (Ennemie->GetPosition().y <= 0 + Ennemie->GetRadius())
+		if (Ennemie->GetPosition().y <= 0)
 		{
 			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
 		}
-		if (Ennemie->GetPosition().y >= height - Ennemie->GetRadius())
+		if (Ennemie->GetPosition().y >= height)
 		{
 			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
 		}
-		if (Ennemie->GetPosition().x <= 0 + Ennemie->GetRadius())
+		if (Ennemie->GetPosition().x <= 0 )
 		{
 			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
 		}
-		if (Ennemie->GetPosition().x >= width - Ennemie->GetRadius())
+		if (Ennemie->GetPosition().x >= width)
 		{
 			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
 		}
@@ -141,27 +163,28 @@ void SampleScene::OnUpdate()
 
 	}
 	
-	for (auto ça = Resistors.begin(); ça != Resistors.end();)
+	//mouvement resistors
+	for (auto it = Resistors.begin(); it != Resistors.end();)
 	{
-		Resistor* Ennemie = *ça; 
-		if (Ennemie->GetPosition().y <= 0 + Ennemie->GetRadius())
+		Resistor* Ennemie = *it; 
+		if (Ennemie->GetPosition().y <= 0)
 		{
 			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
 		}
-		if (Ennemie->GetPosition().y >= height - Ennemie->GetRadius())
+		if (Ennemie->GetPosition().y >= height)
 		{
 			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
 		}
-		if (Ennemie->GetPosition().x <= 0 + Ennemie->GetRadius())
+		if (Ennemie->GetPosition().x <= 0)
 		{
 			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
 		}
-		if (Ennemie->GetPosition().x >= width - Ennemie->GetRadius())
+		if (Ennemie->GetPosition().x >= width)
 		{
 			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
 		}
 		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, Ennemie->speed);
-		ça++;
+		it++;
 	}
 
 	if (ResistorDestroy == 2 && CanSpeeder == false)
@@ -172,7 +195,37 @@ void SampleScene::OnUpdate()
 			SpawnSpeeders(x);
 		}
 		CanSpeeder = true;
+		CreateButton();
 	}
+	for (auto it = Speeders.begin(); it != Speeders.end();)
+	{
+		Speeder* Ennemie = *it;
+		if (Ennemie->GetPosition().y <= 0)
+		{
+			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
+		}
+		if (Ennemie->GetPosition().y >= height)
+		{
+			Ennemie->VerticalSpeed = -Ennemie->VerticalSpeed;
+		}
+		if (Ennemie->GetPosition().x <= 0)
+		{
+			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
+		}
+		if (Ennemie->GetPosition().x >= width)
+		{
+			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
+		}
+		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, Ennemie->speed);
+		it++;
+	}
+	if (SpeederDestroy == 5 && respawnBall == false)
+	{
+		text.setString("Ça se fait pas\nMoi je voulais juste créer un jeux\net toi tu casse tout");
+		CreateButton2();
+		respawnBall = true;
+	}
+
 }
 
 void SampleScene::TryBall(DummyEntity* pEntity, int x, int y)
@@ -189,6 +242,15 @@ void SampleScene::TryProjectile(DummyEntity* pEntity, int x, int y)
 		return;
 
 	pEntity->Destroy();
+
+	for (auto it = Projectiles.begin(); it != Projectiles.end(); ++it)
+	{
+		if (*it == pEntity)
+		{
+			Projectiles.erase(it);
+			break;
+		}
+	}
 	ProjectilesDestroy++;
 	Gold++;
 }
@@ -210,6 +272,16 @@ void SampleScene::TryResistor(Resistor* pEntity, int x, int y)
 	if(pEntity->life == 0)
 	{
 		pEntity->Destroy();
+		
+		for (auto it = Resistors.begin(); it != Resistors.end(); ++it)
+		{
+			if (*it == pEntity)
+			{
+				Resistors.erase(it);
+				break;
+			}
+		}
+		
 		ResistorDestroy++;
 		Gold++;
 	}
@@ -223,43 +295,55 @@ void SampleScene::TrySpeeder(Speeder* pEntity, int x, int y)
 	pEntity->life--;
 	std::cout << pEntity->life << std::endl;
 
-	if (firstkickResistor == false)
-	{
-		text.setString("HAHA celle là sont beaucoup plus résistante.");
-		firstkickResistor = true;
-	}
+	std::cout << "You kick speeder" <<pEntity->life << std::endl;
 
 	if (pEntity->life == 0)
 	{
 		pEntity->Destroy();
+
+		for (auto it = Speeders.begin(); it != Speeders.end(); ++it)
+		{
+			if (*it == pEntity)
+			{
+				Speeders.erase(it);
+				break;
+			}
+		}
 		Gold++;
+		SpeederDestroy++;
 	}
 }
 
-void SampleScene::DrawLines()
+void SampleScene::PressedButton(DummyEntity* pEntity, int x, int y)
 {
-	//Draw horizontal lines
-	Debug::DrawLine(0, HorizontalLane, width, HorizontalLane, sf::Color::Red);
-	Debug::DrawLine(0, HorizontalLane * 2, width, HorizontalLane * 2, sf::Color::Red);
-	Debug::DrawLine(0, HorizontalLane * 3, width, HorizontalLane * 3, sf::Color::Red);
-	Debug::DrawLine(0, HorizontalLane * 4, width, HorizontalLane * 4, sf::Color::Red);
-	Debug::DrawLine(0, HorizontalLane * 5, width, HorizontalLane * 5, sf::Color::Red);
-	Debug::DrawLine(0, HorizontalLane * 6, width, HorizontalLane * 6, sf::Color::Red);
-	Debug::DrawLine(0, HorizontalLane * 7, width, HorizontalLane * 7, sf::Color::Red);
-	Debug::DrawLine(0, HorizontalLane * 8, width, HorizontalLane * 8, sf::Color::Red);
-	//Draw vertical lines
-	Debug::DrawLine(VerticalLane, 0, VerticalLane, height, sf::Color::Green);
-	Debug::DrawLine(VerticalLane * 2, 0, VerticalLane * 2, height, sf::Color::Green);
-	Debug::DrawLine(VerticalLane * 3, 0, VerticalLane * 3, height, sf::Color::Green);
-	Debug::DrawLine(VerticalLane * 4, 0, VerticalLane * 4, height, sf::Color::Green);
-	Debug::DrawLine(VerticalLane * 5, 0, VerticalLane * 5, height, sf::Color::Green);
-	Debug::DrawLine(VerticalLane * 6, 0, VerticalLane * 6, height, sf::Color::Green);
+	if(pEntity->IsInside(x, y) == false)
+		return;
+
+	Button->Destroy();
+	Button = nullptr;
+	Indication.setString(" ");
+
+	for (Speeder* speeders : Speeders)
+	{
+		speeders->VerticalSpeed = speeders->VerticalSpeed/5;
+	}
+	text.setString("Quoi comment t'as fait ça!!!");
+	Gold -= 7;
 }
 
-int SampleScene::PickNumber(int number, int total)
+void SampleScene::PressedButton2(DummyEntity* pEntity, int x, int y)
 {
-	number = rand() % (total - number + 1) + number;
-	return number;
+	if (pEntity->IsInside(x, y) == false)
+		return;
+
+	Button2->Destroy();
+	Button2 = nullptr;
+	Indication.setString(" ");
+
+	CreateBall(40);
+	
+	text.setString("Attend t'a vraiment fais ça?\npour moi!");
+	Gold -= 1;
 }
 
 void SampleScene::CreateBall(int size)
@@ -294,4 +378,18 @@ void SampleScene::SpawnSpeeders(int Speed)
 	speeder->HorizontalSpeed = 10 + 7 * Speed;
 	speeder->VerticalSpeed = 50;
 	speeder->SetPosition(width / 2, height / 2);
+}
+
+void SampleScene::CreateButton()
+{
+	Button = CreateEntity<DummyEntity>(40, sf::Color::Green);
+	Button->SetPosition(width - Button->GetRadius(), 0 + Button->GetRadius());
+	Indication.setString("7 pèces pour acheter ralentisseur");
+}
+
+void SampleScene::CreateButton2()
+{
+	Button2 = CreateEntity<DummyEntity>(40, sf::Color::Cyan);
+	Button2->SetPosition(width - Button2->GetRadius(), 0 + Button2->GetRadius());
+	Indication.setString("1 pièce pour construire une balle");
 }

@@ -13,9 +13,12 @@ class SampleScene : public Scene
 {
 	sf::Text text;
 	sf::Text Money;
+	sf::Text Indication;
 	sf::Clock clock;
 	GameManager* game;
 	DummyEntity* Ball;
+	DummyEntity* Button;
+	DummyEntity* Button2;
 	DummyEntity* Projectile;
 	Resistor* resistor;
 	Speeder* speeder;
@@ -43,6 +46,7 @@ private:
 	int ProjectilesDestroy;
 	int spawnMore;
 	int ResistorDestroy;
+	int SpeederDestroy;
 
 	bool BallDead;
 	bool die = false;
@@ -51,17 +55,21 @@ private:
 	bool CanSpeeder;
 	bool firstkickResistor;
 	bool spawnSpeeder;
+	bool bottonPressed2;
+	bool respawnBall;
 
 	void TryBall(DummyEntity* pEntity, int x, int y);
 	void TryProjectile(DummyEntity* pEntity, int x, int y);
 	void TryResistor(Resistor* pEntity, int x, int y);
 	void TrySpeeder(Speeder* pEntity, int x, int y);
-	void DrawLines();
-	int PickNumber(int number, int total);
+	void PressedButton(DummyEntity* pEntity, int x, int y);
+	void PressedButton2(DummyEntity* pEntity, int x, int y);
 	void CreateBall(int size);
 	void SpawnProjectile(int speed);
 	void SpawnResistors(int Speed);
 	void SpawnSpeeders(int Speed);
+	void CreateButton();
+	void CreateButton2();
 };
 
 

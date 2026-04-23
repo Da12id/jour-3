@@ -8,5 +8,6 @@ public:
 	float  HorizontalSpeed;
 	float VerticalSpeed;
 	int life = 3;
+	int speed = 10;   
 };
 

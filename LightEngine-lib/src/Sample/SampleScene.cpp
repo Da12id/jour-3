@@ -2,6 +2,7 @@
 #include <iostream>
 #include "DummyEntity.h"
 #include "Resistor.h"
+#include "Speeder.h"
 
 #include "Debug.h"
 
@@ -43,6 +44,8 @@ void SampleScene::OnInitialize()
 
 	CanResistor = false;
 	firstkickResistor = false;
+	spawnSpeeder = false;
+	CanSpeeder = false;
 }
 
 void SampleScene::OnEvent(const sf::Event& event)
@@ -88,7 +91,7 @@ void SampleScene::OnUpdate()
 	}
 	else if(CanSpawn_projectiles == false)
 	{
-		text.setString("Tu vas me le payée");
+		text.setString("Tu vas me le payer");
 		Ball->Destroy();
 		CanSpawn_projectiles = true;
 		int x = 0;
@@ -124,16 +127,15 @@ void SampleScene::OnUpdate()
 		{
 			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
 		}
-		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, 10);
+		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, Ennemie->speed);
 		it++;
 	}
 	if (ProjectilesDestroy == 5 && CanResistor == false)
 	{
 		text.setString("Quoi! Tu a détruit mes boules\nPrépare toi, c'est pas finie");
-		for (int x = 0; x < 5; x++)
+		for (int x = 0; x < 2; x++)
 		{
-			spawnResistors(x);
-			std::cout << "Fuck you";
+			SpawnResistors(x);
 		}
 		CanResistor = true;
 
@@ -158,8 +160,18 @@ void SampleScene::OnUpdate()
 		{
 			Ennemie->HorizontalSpeed = -Ennemie->HorizontalSpeed;
 		}
-		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, 10);
+		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, Ennemie->speed);
 		ça++;
+	}
+
+	if (ResistorDestroy == 2 && CanSpeeder == false)
+	{
+		text.setString("C'est pas grave, Tu ne pourras jamais touchée ces cibles");
+		for (int x = 0; x < 5; x++)
+		{
+			SpawnSpeeders(x);
+		}
+		CanSpeeder = true;
 	}
 }
 
@@ -196,6 +208,28 @@ void SampleScene::TryResistor(Resistor* pEntity, int x, int y)
 	}
 
 	if(pEntity->life == 0)
+	{
+		pEntity->Destroy();
+		ResistorDestroy++;
+		Gold++;
+	}
+}
+
+void SampleScene::TrySpeeder(Speeder* pEntity, int x, int y)
+{
+	if (pEntity->IsInside(x, y) == false)
+		return;
+
+	pEntity->life--;
+	std::cout << pEntity->life << std::endl;
+
+	if (firstkickResistor == false)
+	{
+		text.setString("HAHA celle là sont beaucoup plus résistante.");
+		firstkickResistor = true;
+	}
+
+	if (pEntity->life == 0)
 	{
 		pEntity->Destroy();
 		Gold++;
@@ -244,11 +278,20 @@ void SampleScene::SpawnProjectile(int Speed)
 	Projectile->SetPosition(width/2, height/2);
 }
 
-void SampleScene::spawnResistors(int Speed)
+void SampleScene::SpawnResistors(int Speed)
 {
 	resistor = CreateEntity<Resistor>(40, sf::Color::Yellow);
 	Resistors.push_back(resistor);
 	resistor->HorizontalSpeed = 10 + 7 * Speed;
 	resistor->VerticalSpeed = 50;
-	resistor->SetPosition(width / 2, height / 2);
+	resistor->SetPosition(width / 2 + 5 *Speed, height / 2);
+}
+
+void SampleScene::SpawnSpeeders(int Speed)
+{
+	speeder = CreateEntity<Speeder>(30, sf::Color::White);
+	Speeders.push_back(speeder);
+	speeder->HorizontalSpeed = 10 + 7 * Speed;
+	speeder->VerticalSpeed = 50;
+	speeder->SetPosition(width / 2, height / 2);
 }

@@ -6,8 +6,8 @@ class Speeder : public Entity
 public:
 	void OnCollision(Entity* other) override;
 	float  HorizontalSpeed;
-	float VerticalSpeed;
+	float VerticalSpeed= 50;
 	int life = 3;
-	int speed = 30;
+	int speed = 30; 
 };
 

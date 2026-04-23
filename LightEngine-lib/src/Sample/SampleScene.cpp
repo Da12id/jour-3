@@ -57,6 +57,8 @@ void SampleScene::OnInitialize()
 	spawnSpeeder = false;
 	CanSpeeder = false;
 	respawnBall = false;
+	generalattack = false;
+	button2Pressed = false;
 }
 
 void SampleScene::OnEvent(const sf::Event& event)
@@ -114,12 +116,19 @@ void SampleScene::OnUpdate()
 		text.setString("Tu vas me le payer");
 		Ball->Destroy();
 		CanSpawn_projectiles = true;
-		int x = 0;
 		for(int x =0; x<5; x++)
 		{
 			SpawnProjectile(x);
 		}
 		Gold++;
+	}
+
+	if (generalattack == true)
+	{
+		for (int x = 0; x < 5; x++)
+		{
+			SpawnProjectile(x);
+		}
 	}
 
 	//texte pour l'argent qu'on a
@@ -152,9 +161,10 @@ void SampleScene::OnUpdate()
 		Ennemie->SetDirection(Ennemie->HorizontalSpeed, Ennemie->VerticalSpeed, Ennemie->speed);
 		it++;
 	}
-	if (ProjectilesDestroy == 5 && CanResistor == false)
+	if (ProjectilesDestroy == 5 && (CanResistor == false || generalattack == true))
 	{
-		text.setString("Quoi! Tu a détruit mes boules\nPrépare toi, c'est pas finie");
+		if(generalattack == false)
+			text.setString("Quoi! Tu a détruit mes boules\nPrépare toi, c'est pas finie");
 		for (int x = 0; x < 2; x++)
 		{
 			SpawnResistors(x);
@@ -187,16 +197,21 @@ void SampleScene::OnUpdate()
 		it++;
 	}
 
-	if (ResistorDestroy == 2 && CanSpeeder == false)
+	if (ResistorDestroy == 2 && (CanSpeeder == false || generalattack == true))
 	{
-		text.setString("C'est pas grave, Tu ne pourras jamais touchée ces cibles");
+		if(generalattack == false)
+		{
+			text.setString("C'est pas grave, Tu ne pourras jamais touchée ces cibles");
+			CreateButton();
+		}
 		for (int x = 0; x < 5; x++)
 		{
 			SpawnSpeeders(x);
 		}
 		CanSpeeder = true;
-		CreateButton();
+		generalattack = false;
 	}
+
 	for (auto it = Speeders.begin(); it != Speeders.end();)
 	{
 		Speeder* Ennemie = *it;
@@ -226,6 +241,10 @@ void SampleScene::OnUpdate()
 		respawnBall = true;
 	}
 
+	if (ProjectilesDestroy == 10 && ResistorDestroy == 4 && SpeederDestroy == 10)
+	{
+		text.setString("Wow t'es vraiment fort\nbravo t'as gagné au revoir");
+	}
 }
 
 void SampleScene::TryBall(DummyEntity* pEntity, int x, int y)
@@ -295,8 +314,6 @@ void SampleScene::TrySpeeder(Speeder* pEntity, int x, int y)
 	pEntity->life--;
 	std::cout << pEntity->life << std::endl;
 
-	std::cout << "You kick speeder" <<pEntity->life << std::endl;
-
 	if (pEntity->life == 0)
 	{
 		pEntity->Destroy();
@@ -316,6 +333,8 @@ void SampleScene::TrySpeeder(Speeder* pEntity, int x, int y)
 
 void SampleScene::PressedButton(DummyEntity* pEntity, int x, int y)
 {
+	if (Gold < 7)
+		return;
 	if(pEntity->IsInside(x, y) == false)
 		return;
 
@@ -333,6 +352,8 @@ void SampleScene::PressedButton(DummyEntity* pEntity, int x, int y)
 
 void SampleScene::PressedButton2(DummyEntity* pEntity, int x, int y)
 {
+	if (Gold < 1)
+		return;
 	if (pEntity->IsInside(x, y) == false)
 		return;
 
@@ -342,8 +363,10 @@ void SampleScene::PressedButton2(DummyEntity* pEntity, int x, int y)
 
 	CreateBall(40);
 	
-	text.setString("Attend t'a vraiment fais ça?\npour moi!");
+	text.setString("Attend t'a vraiment fais ça?\npour moi! MERCI!!\nmaintenant on peut commencer a jouer");
 	Gold -= 1;
+	generalattack = true;
+	button2Pressed = true;
 }
 
 void SampleScene::CreateBall(int size)
@@ -376,7 +399,8 @@ void SampleScene::SpawnSpeeders(int Speed)
 	speeder = CreateEntity<Speeder>(30, sf::Color::White);
 	Speeders.push_back(speeder);
 	speeder->HorizontalSpeed = 10 + 7 * Speed;
-	speeder->VerticalSpeed = 50;
+	if (button2Pressed == true)
+		speeder->VerticalSpeed = speeder->VerticalSpeed / 5;
 	speeder->SetPosition(width / 2, height / 2);
 }
 

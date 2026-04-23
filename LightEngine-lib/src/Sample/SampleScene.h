@@ -57,6 +57,8 @@ private:
 	bool spawnSpeeder;
 	bool bottonPressed2;
 	bool respawnBall;
+	bool generalattack;
+	bool button2Pressed;
 
 	void TryBall(DummyEntity* pEntity, int x, int y);
 	void TryProjectile(DummyEntity* pEntity, int x, int y);
